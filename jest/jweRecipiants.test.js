@@ -3,7 +3,7 @@ const phone = require('./helpers/phone')
 const postgres = require('./helpers/operatorPostgres')
 
 describe('jweRecipients', () => {
-  let serviceClient, connectionId, clientId
+  let serviceClient, firstServiceConnectionId, firstServiceClientId
 
   beforeAll(async () => {
     await phone.clearAccount()
@@ -26,7 +26,7 @@ describe('jweRecipients', () => {
     }
 
     serviceClient = await createClientWithServer(serviceConfig)
-    clientId = serviceClient.config.clientId
+    firstServiceClientId = serviceClient.config.clientId
     await serviceClient.connect()
 
     const { url } = await serviceClient.initializeAuthentication()
@@ -37,13 +37,12 @@ describe('jweRecipients', () => {
     // Approve it!
     let approvalResponse = new Map()
     connectionRequest.permissions.forEach(p => approvalResponse.set(p.id, true))
-    connectionId = await phone.approveConnection(connectionRequest, approvalResponse)
+    firstServiceConnectionId = await phone.approveConnection(connectionRequest, approvalResponse)
     const data = ['All of them']
     const area = 'favorite_cats'
 
-    await serviceClient.data.write(connectionId, { area, data })
-    const dataz = await serviceClient.data.read(connectionId, { area: 'favorite_cats' })
-    console.log(dataz, 'dataz')
+    await serviceClient.data.write(firstServiceConnectionId, { area, data })
+    await serviceClient.data.read(firstServiceConnectionId, { area: 'favorite_cats' })
   })
 
   afterAll(async (done) => {
@@ -60,7 +59,7 @@ describe('jweRecipients', () => {
           area: 'favorite_cats',
           types: ['READ'],
           purpose: 'To recommend you cats that you\'ll like',
-          domain: clientId
+          domain: firstServiceClientId
         }
       ]
     }
@@ -70,9 +69,8 @@ describe('jweRecipients', () => {
     const { connectionRequest } = await phone.handleAuthCode({ code: url })
     let approvalResponse = new Map()
     connectionRequest.permissions.forEach(p => approvalResponse.set(p.id, true))
-    connectionId = await phone.approveConnection(connectionRequest, approvalResponse)
-
-    // Den anslutande servicen måste veta vilken domain som den gamla har registrerat sig med.
-    // Decode eller verify?
+    const secondConnectionId = await phone.approveConnection(connectionRequest, approvalResponse)
+    const dataz = await serviceClient2.data.read(secondConnectionId, { area: 'favorite_cats', domain: firstServiceClientId })
+    console.log('dattan', dataz)
   })
 })
