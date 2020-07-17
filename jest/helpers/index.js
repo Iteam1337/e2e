@@ -24,7 +24,8 @@ const createClient = (port, config = {}) => {
 const createClientWithServer = (serviceConfig) => {
   return new Promise((resolve, reject) => {
     const app = express()
-    const server = app.listen(0, () => {
+    const port = Math.floor(Math.random() * 10000)
+    const server = app.listen(port, () => {
       // Create client with the port that the current test server is using
       const client = createClient(server.address().port, serviceConfig)
 

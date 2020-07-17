@@ -29,5 +29,6 @@ module.exports = {
   getConnections: call('getConnections'),
   handleAuthCode: call('handleAuthCode'),
   approveConnection: call('approveConnection'),
-  approveLogin: call('approveLogin')
+  approveLogin: call('approveLogin'),
+  getJWERecipients: call('getJWERecipients')
 }
